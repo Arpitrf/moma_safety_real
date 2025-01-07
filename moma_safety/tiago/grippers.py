@@ -85,7 +85,14 @@ class RobotiqGripper2F:
         gripper_act = self.gripper_max - gripper_act*(self.gripper_max - self.gripper_min)
         gripper_cmd = self.create_gripper_command(gripper_act)
         self.gripper_writer.write(gripper_cmd)
+        rospy.sleep(2)
         return {}
+    
+    def is_grasping(self):
+        gripper_pos = self.get_state()
+        if gripper_pos < 0.05 or gripper_pos > 0.95:
+            return False
+        return True
 
 class RobotiqGripper2F_140(RobotiqGripper2F):
     def __init__(self, side):

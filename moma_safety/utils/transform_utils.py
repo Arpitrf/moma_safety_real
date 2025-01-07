@@ -202,17 +202,33 @@ def quat_inverse(quaternion):
     return quat_conjugate(quaternion) / np.dot(quaternion, quaternion)
 
 
+# def quat_distance(quaternion1, quaternion0):
+#     """
+#     Returns distance between two quaternions, such that distance * quaternion0 = quaternion1
+
+#     Args:
+#         quaternion1 (np.array): (x,y,z,w) quaternion
+#         quaternion0 (np.array): (x,y,z,w) quaternion
+
+#     Returns:
+#         np.array: (x,y,z,w) quaternion distance
+#     """
+#     return quat_multiply(quaternion1, quat_inverse(quaternion0))
+
 def quat_distance(quaternion1, quaternion0):
     """
     Returns distance between two quaternions, such that distance * quaternion0 = quaternion1
 
     Args:
-        quaternion1 (np.array): (x,y,z,w) quaternion
-        quaternion0 (np.array): (x,y,z,w) quaternion
+        quaternion1 (th.tensor): (x,y,z,w) quaternion
+        quaternion0 (th.tensor): (x,y,z,w) quaternion
 
     Returns:
-        np.array: (x,y,z,w) quaternion distance
+        th.tensor: (x,y,z,w) quaternion distance
     """
+    # Ensure the shortest path between quaternions is taken
+    if np.dot(quaternion1, quaternion0) < 0.0:
+        quaternion0 = -quaternion0  # Flip the sign of quaternion0
     return quat_multiply(quaternion1, quat_inverse(quaternion0))
 
 
@@ -946,22 +962,42 @@ def get_orientation_error(target_orn, current_orn):
     return orn_error
 
 
+# def get_orientation_diff_in_radian(orn0, orn1):
+#     """
+#     Returns the difference between two quaternion orientations in radian
+
+#     Args:
+#         orn0 (np.array): (x, y, z, w)
+#         orn1 (np.array): (x, y, z, w)
+
+#     Returns:
+#         orn_diff (float): orientation difference in radian
+#     """
+#     vec0 = quat2axisangle(orn0)
+#     vec0 /= np.linalg.norm(vec0)
+#     vec1 = quat2axisangle(orn1)
+#     vec1 /= np.linalg.norm(vec1)
+#     return np.arccos(np.dot(vec0, vec1))
+
 def get_orientation_diff_in_radian(orn0, orn1):
     """
-    Returns the difference between two quaternion orientations in radian
+    Returns the difference between two quaternion orientations in radians.
 
     Args:
-        orn0 (np.array): (x, y, z, w)
-        orn1 (np.array): (x, y, z, w)
+        orn0 (th.Tensor): (x, y, z, w) quaternion
+        orn1 (th.Tensor): (x, y, z, w) quaternion
 
     Returns:
-        orn_diff (float): orientation difference in radian
+        orn_diff (th.Tensor): orientation difference in radians
     """
-    vec0 = quat2axisangle(orn0)
-    vec0 /= np.linalg.norm(vec0)
-    vec1 = quat2axisangle(orn1)
-    vec1 /= np.linalg.norm(vec1)
-    return np.arccos(np.dot(vec0, vec1))
+    # Compute the difference quaternion
+    diff_quat = quat_distance(orn0, orn1)
+
+    # Convert to axis-angle representation
+    axis_angle = quat2axisangle(diff_quat)
+
+    # The magnitude of the axis-angle vector is the rotation angle
+    return np.linalg.norm(axis_angle)
 
 
 def get_pose_error(target_pose, current_pose):

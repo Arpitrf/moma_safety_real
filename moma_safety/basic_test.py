@@ -10,14 +10,15 @@ from moma_safety.tiago.utils.transformations import quat_diff
 from scipy.spatial.transform import Rotation as R
 
 
+
 rospy.init_node('tiago_test')
 
 env = TiagoGym(
     frequency=10,
     right_arm_enabled=True,
-    left_arm_enabled=True,
+    left_arm_enabled=False,
     right_gripper_type='robotiq2F-140',
-    left_gripper_type='robotiq2F-140',
+    left_gripper_type=None,
     base_enabled=True,
     torso_enabled=False,
 )
@@ -31,44 +32,86 @@ print("current_right_arm_joint_angles: ", current_right_arm_joint_angles)
 print("current_left_arm_joint_angles: ", current_left_arm_joint_angles)
 
 # Get current ee pose
-# current_right_ee_pose = env.tiago.arms["right"].arm_pose
+current_right_ee_pose = env.tiago.arms["right"].arm_pose
+print("current_right_ee_pose: ", current_right_ee_pose)
 
-# # Joint Controller: Move the right arm to vertical reset position
-# reset_joint_pos = RP.VERTICAL_H
-# env.reset(reset_arms=True, reset_pose=reset_joint_pos, allowed_delay_scale=6.0)
+# rospy.sleep(2)
+# env.tiago.gripper['right'].step(0.1)
+# rospy.sleep(2)
+# gripper_state = env.tiago.gripper["right"].get_state()
+# print("gripper_state: ", gripper_state)
+
+# from moma_safety.utils.object_config import object_config as OC
+# object_name = "shelf"
+# env.tiago.head.write_head_command(np.array([-0.6, -0.6]))
 
 # # # Joint Controller: Move the right arm to home reset position
-# reset_joint_pos = RP.HOME_LEFT
-# env.reset(reset_arms=True, reset_pose=reset_joint_pos, allowed_delay_scale=6.0)
+# reset_joint_pos = RP.PREGRASP_HIGH_2
+# env.reset(reset_arms=True, reset_pose=reset_joint_pos, delay_scale_factor=12.0)
 
-# # IK Controller: Move right arm 10 cm forward
-# current_right_ee_pose = env.tiago.arms["right"].arm_pose
-# print(f"current_right_ee_pose: {current_right_ee_pose}")
-# target_right_ee_pose = np.array([0.46, -0.20, 0.76, -0.202, -0.093, 0.614, 0.757])
-# delta_pos = target_right_ee_pose[:3] - current_right_ee_pose[:3]
-# delta_ori = quat_diff(target_right_ee_pose[3:], current_right_ee_pose[3:])
-# delta_pose = np.concatenate((delta_pos, delta_ori))
+# # move ee by delta pose
+# # Obtaining delta pose
+# delta_pos = np.array([0.0, 0.0, 0.1])
+# delta_ori = R.from_euler('xyz', [0.0, 0.0, 0.0]).as_quat()
+# gripper_act = np.array([0.0])
+# delta_pose = np.concatenate((delta_pos, delta_ori, gripper_act))
 # print(f"delta_pos: {delta_pos}")
 # print(f"delta_ori: {delta_ori}")
-# action = {'right': None, 'left': None, 'base': None}
-# action["right"] = delta_pose
-# # breakpoint()
+# action = {'right': delta_pose, 'left': None, 'base': None}
+# print("Press c to continue...")
+# breakpoint()
 # obs, reward, done, info = env.step(action)
-
-# target_right_ee_pose = current_right_ee_pose + np.array([0.1, 0, 0, 0, 0, 0, 0])
-delta_pos = np.array([0.0, 0.0, 0.1])
-delta_ori = np.array([0.0, 0.0, 0.0, 0.0])
-gripper_act = np.array([0.0])
-delta_act = np.concatenate(
-    (delta_pos, delta_ori, gripper_act)
-)
-print(f'delta_pos: {delta_pos}', f'delta_ori: {delta_ori}')
-action = {'right': None, 'left': None, 'base': None}
-action["right"] = delta_act
-obs, reward, done, info = env.step(action)
+# print("info: ", info["arm_right"])
 
 
-# # Move base 10 cm forward
+
+# # move to 0 orn of ee
+# current_right_ee_pose = env.tiago.arms["right"].arm_pose
+# target_right_ee_orn = np.array([0.0, 0.0, 0.0, 1.0])
+# target_right_ee_pose = (current_right_ee_pose[:3], target_right_ee_orn)
+# # Obtaining delta pose
+# delta_pos = target_right_ee_pose[0] - current_right_ee_pose[:3]
+# delta_ori = R.from_quat(target_right_ee_pose[1]) * R.from_quat(current_right_ee_pose[3:]).inv()
+# delta_ori = delta_ori.as_quat()
+# gripper_act = np.array([1.0])
+# delta_pose = np.concatenate((delta_pos, delta_ori, gripper_act))
+# print(f"delta_pos: {delta_pos}")
+# print(f"delta_ori: {delta_ori}")
+# action = {'right': delta_pose, 'left': None, 'base': None}
+# print("Press c to continue...")
+# breakpoint()
+# obs, reward, done, info = env.step(action)
+# print("info: ", info["arm_right"])
+
+# # if red component is along +- z axis, rotate by 90 degrees about x axis and add some +z offset
+# current_right_ee_pose = env.tiago.arms["right"].arm_pose
+# ee_pose = T.pose2mat((current_right_ee_pose[:3], current_right_ee_pose[3:]))
+# for theta in [0.6, 0.6, 0.6, 0.6]:
+#     print("Rotating!!")
+#     R_x = np.array([
+#             [1, 0, 0],
+#             [0, np.cos(theta), -np.sin(theta)],
+#             [0, np.sin(theta), np.cos(theta)]
+#         ])
+#     ee_pose[:3, :3] = R_x @ ee_pose[:3, :3]
+#     target_right_ee_pose = T.mat2pose(ee_pose)
+
+#     delta_pos = target_right_ee_pose[0] - current_right_ee_pose[:3]
+#     delta_ori = R.from_quat(target_right_ee_pose[1]) * R.from_quat(current_right_ee_pose[3:]).inv()
+#     delta_ori = delta_ori.as_quat()
+#     gripper_act = np.array([1.0])
+#     delta_pose = np.concatenate((delta_pos, delta_ori, gripper_act))
+#     print(f"delta_pos: {delta_pos}")
+#     print(f"delta_ori: {delta_ori}")
+#     action = {'right': delta_pose, 'left': None, 'base': None}
+#     print("Press c to continue...")
+#     breakpoint()
+#     obs, reward, done, info = env.step(action)
+#     print("info: ", info["arm_right"])
+
+
+
+# # =============================== MOVE BASE ===============================
 # import actionlib
 # from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
@@ -108,38 +151,53 @@ obs, reward, done, info = env.step(action)
 # debug = False
 # execute = True
 
+
 # tf_map = TFTransformListener('/map')
-# pos = [0.3, 0.0, 0.0]
 # transform = T.pose2mat((tf_map.get_transform(target_link=f'/base_footprint')))
+# # print("transform: ", transform)
+# pos_map = transform[:3, 3]
+# # ori_map = R.from_matrix(transform[:3, :3]).as_euler('xyz')
+# ori_map = T.mat2quat(transform[:3, :3])
+# print(f"Current base pos in map: {pos_map}")
+# print(f"Current base orn in map: {ori_map}")
+
+
+# pos = [-0.3, -0.3, 0.0]
 # pose_map = T.pose2mat((pos, [0.0, 0.0, 0.0, 1.0]))
-# # breakpoint()
 # pose_map = transform @ pose_map
+
+# # # pose_map = np.array([
+# # #     [ 1.0,  0.0,  0.0, -4.142], 
+# # #     [ 0.0,  1.0,  0.0,  8.949], 
+# # #     [ 0.0,  0.0,  1.0,  0.0], 
+# # #     [ 0.0,  0.0,  0.0,  1.0]
+# # # ])
+
 # pos_map = pose_map[:3, 3]
 # ori_map = T.mat2quat(pose_map[:3, :3])
-# print(f"Calculated Position in map: {pos_map}")
-# print(f"Calculated Orientation in map: {ori_map}")
+# # ori_map = R.from_matrix(pose_map[:3, :3]).as_euler('xyz')
+# print(f"Target base pos in map: {pos_map}")
+# print(f"Target base orn in map: {ori_map}")
 # goal_pos_map = pos_map
-# goal_ori_map = ori_map # goal in map frame
+# goal_ori_map = ori_map
 
-# # goal_pos = [0.5, 0.0, 0.0]
-# # goal_ori = [0.0, 0.0, 0.0, 1.0]
+# # # goal_pos = [0.5, 0.0, 0.0]
+# # # goal_ori = [0.0, 0.0, 0.0, 1.0]
 
 # if execute:
 #     goal = create_move_base_goal((goal_pos_map, goal_ori_map))
 #     state = send_move_base_goal(goal, client)
 #     print(f"Move base state: {state}")
 
-# # if debug:
-# #     pcd_wrt_map = np.concatenate((pcd.reshape(-1, 3), np.ones((pcd.reshape(-1,3).shape[0], 1))), axis=1)
-# #     transform = T.pose2mat((self.tf_map.get_transform(target_link=f'/base_footprint')))
-# #     pcd_wrt_map = (transform @ pcd_wrt_map.T).T
-# #     pcd_wrt_map = pcd_wrt_map[:, :3]
-# #     pcd_to_plot = pcd_wrt_map.reshape(-1,3)
-# #     rgb_to_plot = rgb.reshape(-1,3)
 
-# #     pcd_to_plot = np.concatenate((pcd_to_plot, goal_pos_map.reshape(1,3)), axis=0)
-# #     rgb_to_plot = np.concatenate((rgb_to_plot.reshape(-1,3), np.asarray([[255.0, 0.0, 0.0]])), axis=0) # goal pos in red
+# tf_map = TFTransformListener('/map')
+# transform = T.pose2mat((tf_map.get_transform(target_link=f'/base_footprint')))
+# print("transform: ", transform)
+# pos_map = transform[:3, 3]
+# # ori_map = R.from_matrix(transform[:3, :3]).as_euler('xyz')
+# ori_map = T.mat2quat(transform[:3, :3])
+# print(f"Final base pos in map: {pos_map}")
+# print(f"Final base orn in map: {ori_map}")
 
-# #     U.plotly_draw_3d_pcd(pcd_to_plot, rgb_to_plot)
 
 

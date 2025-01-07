@@ -72,17 +72,17 @@ class Tiago:
             return None
         return self.gripper['left'].get_state()
 
-    def step(self, action, delay_scale_factor=1.0, force_z_th=None, teleop=False):
+    def step(self, action, delay_scale_factor=1.0, force_z_th=None, teleop=False, timeout=20.0):
 
         info = {}
         for side in ['right', 'left']:
             if action[side] is None:
                 continue
 
-            arm_action = action[side][:6]
-            gripper_action = action[side][6]
+            arm_action = action[side][:-1]
+            gripper_action = action[side][-1]
 
-            info[f'arm_{side}'] = self.arms[side].step(arm_action, delay_scale_factor=delay_scale_factor, force_z_th=force_z_th, teleop=teleop)
+            info[f'arm_{side}'] = self.arms[side].step(arm_action, delay_scale_factor=delay_scale_factor, force_z_th=force_z_th, teleop=teleop, timeout=timeout)
 
             if self.gripper[side] is not None:
                 info[f'gripper_{side}'] = self.gripper[side].step(gripper_action)

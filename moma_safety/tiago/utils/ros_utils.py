@@ -44,9 +44,10 @@ class Listener:
 
     def get_most_recent_msg(self):
         while (self.most_recent_message is None) and (not rospy.is_shutdown()):
-            print(f'Waiting for topic {self.input_topic_name} to publish.')
+            print(f'Waiting for topic {self.input_topic_name} to publish.', self.most_recent_message)
             rospy.sleep(0.02)
 
+        # print(f"out of loop for {self.input_topic_name}")
         data = self.most_recent_message if self.post_process_func is None else self.post_process_func(self.most_recent_message)
         return data
 

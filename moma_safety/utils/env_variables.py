@@ -1,0 +1,5 @@
+GSAM_WORKSPACE_PATH = "/home/pal/arpit/Grounded-SAM-2"
+SAM2_CHECKPOINT = f"{GSAM_WORKSPACE_PATH}/checkpoints/sam2.1_hiera_large.pt"
+SAM2_MODEL_CONFIG = "configs/sam2.1/sam2.1_hiera_l.yaml"
+GROUNDING_DINO_CONFIG = f"{GSAM_WORKSPACE_PATH}/grounding_dino/groundingdino/config/GroundingDINO_SwinT_OGC.py"
+GROUNDING_DINO_CHECKPOINT = f"{GSAM_WORKSPACE_PATH}/gdino_checkpoints/groundingdino_swint_ogc.pth"

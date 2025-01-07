@@ -1,7 +1,19 @@
-from geometry_msgs.msg import PoseStamped
+import rospy
+import numpy as np
 
-from moma_safety.tiago.utils.ros_utils import Publisher, create_pose_command, TFTransformListener
+from geometry_msgs.msg import PoseStamped
+from scipy.spatial.transform import Rotation as R
+
+from moma_safety.tiago.utils.ros_utils import Publisher, create_pose_command, TFTransformListener, Listener
 from moma_safety.tiago.utils.camera_utils import Camera
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from control_msgs.msg  import JointTrajectoryControllerState
+
+from threading import Thread
+
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
+import actionlib
+
 
 class TiagoHead:
 
@@ -21,13 +33,20 @@ class TiagoHead:
         self.setup_actors()
         self.setup_listeners()
 
+        self.camera_intrinsics = np.asarray(list(self.head_camera.camera_info.K)).reshape(3,3)
+        self.camera_extrinsics = None
+
     def setup_listeners(self):
         self.camera_reader = TFTransformListener('/base_footprint')
+        def process_head(message):
+                return message.actual.positions
+        self.head_sub = Listener('/head_controller/state', JointTrajectoryControllerState, post_process_func=process_head)
 
     def setup_actors(self):
         self.head_writer = None
         if self.head_enabled:
             self.head_writer = Publisher('/whole_body_kinematic_controller/gaze_objective_xtion_optical_frame_goal', PoseStamped)
+        self.head_pub = Publisher('/head_controller/command', JointTrajectory)
 
     def write(self, trans, quat):
         if self.head_enabled:
@@ -50,12 +69,41 @@ class TiagoHead:
         self.write(pos, quat)
 
     @property
-    def get_camera_extrinsic(self):
+    def camera_extrinsic(self):
         pos, quat = self.camera_reader.get_transform(target_link='/xtion_rgb_optical_frame')
-        print("RGB EXTR: pos, quat: ", pos, quat)
         if pos is None:
             return None
-        return pos, quat
+        extr_rotation = R.from_quat(quat).as_matrix()
+        R_world_cam = extr_rotation
+        T_world_cam = np.array([
+            [R_world_cam[0][0], R_world_cam[0][1], R_world_cam[0][2], pos[0]],
+            [R_world_cam[1][0], R_world_cam[1][1], R_world_cam[1][2], pos[1]],
+            [R_world_cam[2][0], R_world_cam[2][1], R_world_cam[2][2], pos[2]],
+            [0, 0, 0, 1]
+        ])
+        return T_world_cam
+    
+    def write_head_command(self, head_positions):
+        
+        # Create the JointTrajectory message
+        trajectory_msg = JointTrajectory()
+        trajectory_msg.header.seq = 0
+        trajectory_msg.header.stamp = rospy.Time(0)
+        trajectory_msg.header.frame_id = ''
+        trajectory_msg.joint_names = ['head_1_joint', 'head_2_joint']
+
+        # Create a JointTrajectoryPoint
+        point = JointTrajectoryPoint()
+        point.positions = [head_positions[0], head_positions[1]]
+        point.velocities = []  # Optional: empty list
+        point.accelerations = []  # Optional: empty list
+        point.effort = []  # Optional: empty list
+        point.time_from_start = rospy.Duration(1)
+
+        trajectory_msg.points.append(point)
+
+        self.head_pub.write(trajectory_msg)
+
 
 class TiagoHeadPolicy:
 

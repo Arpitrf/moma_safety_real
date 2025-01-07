@@ -7,6 +7,7 @@ from sensor_msgs.msg import LaserScan
 
 from moma_safety.tiago.utils.ros_utils import Publisher, Listener, create_twist_command
 from moma_safety.tiago.utils.transformations import quat_diff, quat_to_euler
+from actionlib_msgs.msg import GoalID
 
 class TiagoBase:
 
@@ -36,6 +37,7 @@ class TiagoBase:
 
 
         def process_scan(message):
+            # breakpoint()
             min_val = message.range_min
             max_val = message.range_max
 
@@ -86,6 +88,8 @@ class TiagoBaseVelocityControl(TiagoBase):
         self.base_writer = None
         if self.base_enabled:
             self.base_writer = Publisher('/mobile_base_controller/cmd_vel', Twist)
+
+        self.move_base_cancel = rospy.Publisher('/move_base/cancel', GoalID, queue_size=1)
 
         self.lin_scale = 0.2
         self.ang_scale = 0.2

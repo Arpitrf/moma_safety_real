@@ -25,6 +25,7 @@ import signal
 from termcolor import colored
 import yaml
 import moma_safety.tiago.RESET_POSES as RP
+from scipy.spatial.transform import Rotation as R
 # import moma_safety.tiago.prompters.vlms as vlms # GPT4V
 
 # def get_model(model_name='gpt-4o-2024-05-13'):
@@ -645,3 +646,39 @@ def plot_gpt_chats(chats, save_key, save_dir, size=(10, 30), font_size=10):
         plt.close()
         plt.clf()
     return
+
+def sample_from_cone(vector, num_samples, max_angle=np.pi/6, norm_variance=0.2):
+        original_vector = vector
+        original_norm = np.linalg.norm(original_vector)
+
+        original_vector = original_vector / np.linalg.norm(original_vector)  # Normalize input vector
+
+        # Compute the rotation matrix to align [0, 0, 1] with the original vector
+        z_axis = np.array([0.0, 0.0, 1.0])
+        if np.allclose(original_vector, z_axis):
+            rotation_matrix = np.eye(3)  # No rotation needed if already aligned
+        else:
+            rotation_axis = np.cross(z_axis, original_vector)
+            rotation_axis /= np.linalg.norm(rotation_axis)
+            angle = np.arccos(np.clip(np.dot(z_axis, original_vector), -1.0, 1.0))
+            rotation_matrix = R.from_rotvec(angle * rotation_axis).as_matrix()
+
+        sampled_vectors = []
+        for sample_num in range(num_samples):
+            # Sample a random point in the cone aligned with the z-axis
+            z = np.cos(max_angle) + (1 - np.cos(max_angle)) * np.random.rand()
+            phi = 2 * np.pi * np.random.rand()
+            x = np.sqrt(1 - z**2) * np.cos(phi)
+            y = np.sqrt(1 - z**2) * np.sin(phi)
+            random_point = np.array([x, y, z], dtype=np.float64)
+
+            # Apply the rotation to align the point with the original vector
+            noisy_vector = rotation_matrix @ random_point
+
+            # Vary the norm of the noisy vector
+            varied_norm = original_norm * (1 + np.random.uniform(-norm_variance, norm_variance))
+            noisy_vector *= varied_norm
+
+            sampled_vectors.append(noisy_vector)
+
+        return np.array(sampled_vectors)

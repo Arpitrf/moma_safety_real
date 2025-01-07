@@ -1,7 +1,9 @@
+import cv2
 import numpy as np
 np.set_printoptions(precision=3, suppress=True)
 import rospy
 import pickle
+import matplotlib.pyplot as plt
 
 from tiago.tiago_gym import TiagoGym
 from moma_safety.tiago import RESET_POSES as RP
@@ -33,15 +35,16 @@ print("rgb: ", rgb.shape)
 print("depth: ", depth.shape)
 
 cam_intr = np.asarray(list(env.cameras['tiago_head'].camera_info.K)).reshape(3,3)
-extr_position, extr_quat = env.tiago.head.get_camera_extrinsic
-extr_rotation = R.from_quat(extr_quat).as_matrix()
-R_world_cam = extr_rotation
-T_world_cam = np.array([
-    [R_world_cam[0][0], R_world_cam[0][1], R_world_cam[0][2], extr_position[0]],
-    [R_world_cam[1][0], R_world_cam[1][1], R_world_cam[1][2], extr_position[1]],
-    [R_world_cam[2][0], R_world_cam[2][1], R_world_cam[2][2], extr_position[2]],
-    [0, 0, 0, 1]
-])
+# extr_position, extr_quat = env.tiago.head.get_camera_extrinsic
+# extr_rotation = R.from_quat(extr_quat).as_matrix()
+# R_world_cam = extr_rotation
+# T_world_cam = np.array([
+#     [R_world_cam[0][0], R_world_cam[0][1], R_world_cam[0][2], extr_position[0]],
+#     [R_world_cam[1][0], R_world_cam[1][1], R_world_cam[1][2], extr_position[1]],
+#     [R_world_cam[2][0], R_world_cam[2][1], R_world_cam[2][2], extr_position[2]],
+#     [0, 0, 0, 1]
+# ])
+T_world_cam = env.tiago.head.camera_extrinsic
 
 save_dict = dict()
 save_dict = {
@@ -52,6 +55,10 @@ save_dict = {
     "rgb": rgb,
     "depth": depth,
 }
+
+rgb = cv2.convertScaleAbs(rgb)
+rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+plt.imsave('data/rgb.jpg', rgb)
 
 save_path = "data"
 counter = 1

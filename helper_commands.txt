@@ -1,0 +1,131 @@
+1. head positions
+rostopic pub /head_controller/command trajectory_msgs/JointTrajectory "
+header:
+    seq: 0
+    stamp:
+        secs: 0
+        nsecs: 0
+    frame_id: ''
+joint_names: ['head_1_joint', 'head_2_joint']
+points:
+  - positions: [0.0, -0.2]
+    velocities: []
+    accelerations: []
+    effort: []
+    time_from_start:
+        secs: 1
+        nsecs: 0"  --rate 5
+
+rostopic pub /head_controller/command trajectory_msgs/JointTrajectory "
+header:
+    seq: 0
+    stamp:
+        secs: 0
+        nsecs: 0
+    frame_id: ''
+joint_names: ['head_1_joint', 'head_2_joint']
+points:
+  - positions: [-0.5, -0.7]
+    velocities: []
+    accelerations: []
+    effort: []
+    time_from_start:
+        secs: 1
+        nsecs: 0"  --rate 5
+
+# -0.4, -0.6 for drawer tasks
+good distance: 0.9477402722430567
+min max distances:  
+
+
+2. Creating empty map for move_base
+vlm_skill/tiago/ros_restrict.py  
+
+
+3. 
+uint8 status
+uint8 PENDING         = 0   # The goal has yet to be processed by the action server
+uint8 ACTIVE          = 1   # The goal is currently being processed by the action server
+uint8 PREEMPTED       = 2   # The goal received a cancel request after it started executing
+                            #   and has since completed its execution (Terminal State)
+uint8 SUCCEEDED       = 3   # The goal was achieved successfully by the action server (Terminal State)
+uint8 ABORTED         = 4   # The goal was aborted during execution by the action server due
+                            #    to some failure (Terminal State)
+uint8 REJECTED        = 5   # The goal was rejected by the action server without being processed,
+                            #    because the goal was unattainable or invalid (Terminal State)
+uint8 PREEMPTING      = 6   # The goal received a cancel request after it started executing
+                            #    and has not yet completed execution
+uint8 RECALLING       = 7   # The goal received a cancel request before it started executing,
+                            #    but the action server has not yet confirmed that the goal is canceled
+uint8 RECALLED        = 8   # The goal received a cancel request before it started executing
+                            #    and was successfully cancelled (Terminal State)
+uint8 LOST            = 9   # An action client can determine that a goal is LOST. This should not be
+                            #    sent over the wire by an action server
+
+
+4. rostopic pub /move_base/cancel actionlib_msgs/GoalID -- {}
+
+
+
+
+rosservice call /controller_manager/switch_controller "start_controllers:
+- 'arm_right_impedance_controller'
+- 'arm_left_impedance_controller'
+stop_controllers:
+- 'arm_right_controller'
+- 'arm_left_controller'
+strictness: 0"
+
+rosservice call /controller_manager/switch_controller "start_controllers:
+- 'arm_right_controller'
+- 'arm_left_controller'
+stop_controllers:
+- 'arm_right_impedance_controller'
+- 'arm_left_impedance_controller'
+strictness: 0"
+
+
+
+GAINS:
+
+Original:
+arm_right_1_joint: kp=6.0 kd=1.0
+arm_right_2_joint: kp=6.0 kd=0.8
+arm_right_4_joint: kp=-6.0 kd=-0.8
+arm_right_5_joint: kp=-0.02 kd=-0.02
+arm_right_6_joint: kp=0.2, kd=0.02
+arm_right_7_joint: kp=0.2, kd=0.2
+
+
+Changes:
+arm_right_2_joint: kp=9.0 kd=0.8
+arm_right_4_joint: kp=-9.0 kd=-0.8
+arm_right_6_joint: kp=0.1, kd=0.01
+arm_right_7_joint: kp=0.1, kd=0.15
+
+
+
+
+Move base:
+1. Change goal tolerance to 0.02 and 0.1
+2. Disable all global_costmap and local_costmap (EXCEPT static layer in global_costmap)
+
+
+Helpful commands:
+
+1. rosrun tf tf_echo map base_footprint
+2. rostopic echo /mobile_base_controller/cmd_vel
+3. rostopic echo /move_base/status
+
+
+
+(moma_safety) pal@development:~/arpit/moma_safety$ echo $PYTHONPATH
+/opt/pal/gallium/lib/python3/dist-packages:/opt/ros/noetic/lib/python3/dist-packages
+
+
+
+What Huihan and Rutav use:
+4182  05/01/25 19:44:13 cd rutav/
+4183  05/01/25 19:44:14 source change_files.sh 
+4184  05/01/25 19:44:19 roslaunch pal_navigation_cfg_tiago_dual localization_amcl.launch base_type:=omni_base map_topic:=map
+4185  05/01/25 19:44:28 roslaunch tiago_dual_2dnav move_base.launch base_type:=omni_base local_planner:=teb
