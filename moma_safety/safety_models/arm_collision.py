@@ -166,6 +166,7 @@ class ArmCollisionModel():
         # pred_choice = pred.data.max(1)[1]
 
         probabilities = torch.sigmoid(pred)
+        print("threshold: ", threshold) 
         # Convert probabilities to binary predictions (0 or 1)
         pred_choice = (probabilities >= threshold).float()
 
@@ -262,10 +263,17 @@ class ArmCollisionModel():
         # remove homogeneous coordinate
         points = points[:, :3]
 
+
         keep_ratio = 0.7  # Keep % of points randomly
         num_points = len(points)
         mask = np.random.choice([True, False], size=num_points, p=[keep_ratio, 1-keep_ratio])
         points = points[mask]
+
+        # Set an upper cap on the number of points and choose them randomly
+        max_points = 20000  # Example upper cap
+        if len(points) > max_points:
+            indices = np.random.choice(len(points), size=max_points, replace=False)
+            points = points[indices]
 
         # # Create an Open3D point cloud object
         # point_cloud = o3d.geometry.PointCloud()
@@ -292,13 +300,15 @@ class ArmCollisionModel():
         # points = points[points[:, 2] > 0.15]
         # points = points[points[:, 1] > -0.6]
 
-        # # remove later. for drawer task
-        # points = points[points[:, 2] > 0.15]
-        # if object_name in ["drawer"]:
-        #     points = points[points[:, 1] > -0.7]
-        #     points = points[points[:, 1] < -0.2]
-        # if object_name not in ["ledge"]:
-        #     points = points[points[:, 0] < 1.2]
+        # remove later. for drawer task
+        points = points[points[:, 2] > 0.15]
+        if object_name in ["shelf"]:
+            points = points[points[:, 1] > -0.6]
+        if object_name in ["drawer"]:
+            points = points[points[:, 1] > -0.7]
+            points = points[points[:, 1] < -0.2]
+        if object_name not in ["ledge"]:
+            points = points[points[:, 0] < 1.2]
 
         # show pcd in open3d
         o3d_pcd = o3d.geometry.PointCloud()

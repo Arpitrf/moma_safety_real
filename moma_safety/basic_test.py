@@ -35,6 +35,12 @@ print("current_left_arm_joint_angles: ", current_left_arm_joint_angles)
 current_right_ee_pose = env.tiago.arms["right"].arm_pose
 print("current_right_ee_pose: ", current_right_ee_pose)
 
+tf_map = TFTransformListener('/map')
+while True:
+    current_pose_wrt_map = T.pose2mat((tf_map.get_transform(target_link=f'/base_footprint')))
+    current_pos_map = current_pose_wrt_map[:3, 3]
+    print("current_pos_map: ", current_pos_map)
+
 # rospy.sleep(2)
 # env.tiago.gripper['right'].step(0.1)
 # rospy.sleep(2)

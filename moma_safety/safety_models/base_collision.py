@@ -43,6 +43,7 @@ class BaseCollisionModel():
         print("obs_scan: ", scan.shape)
         scan[scan > 1.5] = 10.0
         scan[scan != 10.0] /= 2.0
+        scan[np.isnan(scan)] = 10.0
         # breakpoint()
         return scan
     
@@ -57,7 +58,7 @@ class BaseCollisionModel():
         scans, actions = scans.type(torch.FloatTensor).cuda(), actions.type(torch.FloatTensor).cuda()
 
         if torch.isnan(scans).any():
-            print("NaN values detected in points")
+            print("NaN values detected in scans")
             breakpoint()
         if torch.isnan(actions).any():
             print("NaN values detected in actions")

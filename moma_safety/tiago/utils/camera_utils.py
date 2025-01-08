@@ -6,6 +6,7 @@ import numpy as np
 import pyrealsense2 as rs
 from typing import Dict
 from threading import Thread
+from datetime import datetime
 
 class RealSenseCamera:
     def __init__(self, *args, **kwargs) -> None:
@@ -230,7 +231,9 @@ class RecordVideo:
                 continue
             print("len of frames: ", len(frames))
 
-            path = f'{save_folder}/{key}.mp4'
+            current_time = datetime.now()
+            f_name = current_time.strftime("%H-%M-%S")
+            path = f'{save_folder}/{f_name}.mp4'
             if epoch is not None:
                 path = f'{save_folder}/{epoch}_{traj_number}_{key}.mp4'
             with imageio.get_writer(path, mode='I', fps=10) as writer: # originally 24

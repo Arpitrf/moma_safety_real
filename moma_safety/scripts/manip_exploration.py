@@ -359,7 +359,7 @@ class ManipExploration:
                               
                 # hack. remove later
                 if t == self.traj_length - 1:
-                    self.arm_collision_th = max(0.9, self.arm_collision_th+0.2)
+                    self.arm_collision_th = min(0.9, self.arm_collision_th+0.2)
                 
                 if self.collision_model.points.shape[1] == 0:
                     print("pcd does not have any points. Skip prediction.")
@@ -433,7 +433,7 @@ class ManipExploration:
                 continue
 
             # TEST: if FT > th, rewind
-            if test_ft():
+            if test_ft(self.env):
                 retval = dict()
                 retval["resample"] = True
                 retval["stop_expl"] = False

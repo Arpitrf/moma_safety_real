@@ -220,6 +220,8 @@ class ObjDroppingDetector():
 
         # remove later. for drawer task
         points = points[points[:, 2] > 0.15]
+        if object_name in ["shelf"]:
+            points = points[points[:, 1] > -0.6]
         if object_name in ["drawer"]:
             points = points[points[:, 1] > -0.7]
             points = points[points[:, 1] < -0.2]

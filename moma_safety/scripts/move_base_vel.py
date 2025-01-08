@@ -45,7 +45,7 @@ def compute_velocity_from_error(d_x, d_y, d_yaw, v_max_x, v_max_y, omega_max, v_
     return v_x, v_y, omega_z
 
 # Function to update the robot's pose incrementally
-def move_to_target(env, current_pose, target_pose, initial_pose_wrt_map, tf_map=None, pos_tolerance=0.02, orn_tolerance=0.1):
+def move_to_target(env, current_pose, target_pose, initial_pose_wrt_map, tf_map=None, pos_tolerance=0.01, orn_tolerance=0.02):
     # Calculate the target pose based on the current pose and delta pose
     current_x, current_y, current_yaw = current_pose
     target_x, target_y, target_yaw = target_pose
@@ -133,8 +133,8 @@ def move_base_vel(env, action):
     transform = T.pose2mat((tf_map.get_transform(target_link=f'/base_footprint')))
     final_pos_map = transform[:3, 3]
     final_ori_map = T.mat2quat(transform[:3, :3])
-    print(f"Target base pos, ori in map: ", target_pos_map, target_ori_map)
-    print(f"Final base pos, ori in map: ", final_pos_map, final_ori_map)
+    # print(f"Target base pos, ori in map: ", target_pos_map, target_ori_map)
+    # print(f"Final base pos, ori in map: ", final_pos_map, final_ori_map)
 
 if __name__ == "__main__":
     rospy.init_node('tiago_test')

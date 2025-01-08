@@ -41,7 +41,7 @@ def config_parser(parser=None):
     return parser
 
 # Note: for now the norm of the sampled vectors are the same as the original vector
-def generate_symmetric_rotated_vectors(V, N=7, k=10): 
+def generate_symmetric_rotated_vectors(V, N=7, k=20, magnitude_variation=0.4): 
     """
     V: tuple of (V_x, V_y) original vector
     N: Number of vectors to generate
@@ -57,8 +57,13 @@ def generate_symmetric_rotated_vectors(V, N=7, k=10):
     M = (N - 1) // 2  # Number of steps in each direction
     for i in range(-M, M + 1):
         theta = theta_V + i * k_radians
+        
+        # Apply a random magnitude variation
+        random_scale = 1 + np.random.uniform(-magnitude_variation, magnitude_variation)
+        new_magnitude = magnitude * random_scale
+
         # Compute the rotated vector
-        rotated_vector = (magnitude * np.cos(theta), magnitude * np.sin(theta))
+        rotated_vector = (new_magnitude * np.cos(theta), new_magnitude * np.sin(theta))
         if i == 0:
             continue
             # vectors.insert(0, rotated_vector)
@@ -195,6 +200,11 @@ class NavExploration:
             if self.safe(action[t]):
                 # # remove this later
                 # if t == self.traj_length - 1:
+                inp = input("Press Y to execute action and N to skip")
+                if inp == 'Y':
+                    pass
+                else:
+                    continue
                 breakpoint()
                 # Move the robot
                 self.step(action[t])

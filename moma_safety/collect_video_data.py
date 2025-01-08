@@ -24,7 +24,7 @@ env = TiagoGym(
     right_arm_enabled=True,
     left_arm_enabled=True,
     right_gripper_type='robotiq2F-140',
-    left_gripper_type='robotiq2F-140',
+    left_gripper_type=None,
     base_enabled=True,
     torso_enabled=False,
 )

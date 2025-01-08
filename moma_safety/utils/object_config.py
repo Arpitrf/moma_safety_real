@@ -11,7 +11,7 @@ object_config = {
         "add_grasp_modes": False,
         "head_joint_pos": np.array([-0.5, -0.7]),
         "manip_head_joint_pos": np.array([-0.5, -0.7]),
-        "text_description": "pringles.",
+        "text_description": "green colored pringles box.",
         "check_grasp_reachability_flag": True,
         "post_grasp_pregrasp_pose_flag": True,
         "use_impedance_controller": False,
@@ -160,7 +160,7 @@ object_config = {
     },
     "shelf": {
         "min_th": 0.4,
-        "max_th": 0.9,
+        "max_th": 0.8,
         "gripper_open_pos": 0.9,
         "gripper_closed_pos": 0.0,
         "right_tooltip_ee_offset": np.array([-0.28, 0, 0]),

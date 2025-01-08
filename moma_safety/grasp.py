@@ -262,7 +262,7 @@ def transform_proposed_grasp_to_executable_grasp(grasp, obj_name=None):
             breakpoint()
         T_grasp[:3, 3] += np.array([0, 0, 0.04])
 
-    if obj_name is not None and obj_name == "can":
+    if obj_name is not None and obj_name in ["can", "pringles"]:
         T_grasp[:3, 3] += np.array([0, 0, 0.02])
 
     # print("----------- Original T_grasp: ", T_grasp)
@@ -389,7 +389,7 @@ def execute_grasp(env, grasp, obj_name, switch_to_impedance_controller=False):
 
     print("Press c to continue...")
     breakpoint()
-    obs, reward, done, info = env.step(action, delay_scale_factor=4.0)
+    obs, reward, done, info = env.step(action, delay_scale_factor=3.0)
     print("info: ", info["arm_right"])
     if info["arm_right"] is not None:
         final_actions.append(action)
@@ -430,7 +430,7 @@ def execute_grasp(env, grasp, obj_name, switch_to_impedance_controller=False):
 
     # print("Press c to continue...")
     # breakpoint()
-    obs, reward, done, info = env.step(action, delay_scale_factor=2.0)
+    obs, reward, done, info = env.step(action, delay_scale_factor=3.0)
     print("info: ", info["arm_right"])
     if info["arm_right"] is not None:
         final_actions.append(action)
@@ -449,7 +449,7 @@ def execute_grasp(env, grasp, obj_name, switch_to_impedance_controller=False):
     gripper_act = np.array([OC[obj_name]["gripper_closed_pos"]])
     delta_pose = np.concatenate((delta_pos, delta_ori, gripper_act))
     action = {'right': delta_pose, 'left': None, 'base': None, 'gripper': 'close', 'object_name': obj_name}
-    obs, reward, done, info = env.step(action, delay_scale_factor=4.0)
+    obs, reward, done, info = env.step(action, delay_scale_factor=3.0)
     print("info: ", info["arm_right"])
     if info["arm_right"] is not None:
         final_actions.append(action)
@@ -490,7 +490,7 @@ def execute_grasp(env, grasp, obj_name, switch_to_impedance_controller=False):
         # # Need to set explicitly so that first the gripper is opened and only then the arm is taken back to pregrasp pose
         # env.tiago.gripper['right'].step(OC[obj_name]["gripper_open_pos"])
         # time.sleep(2)
-        obs, reward, done, info = env.step(action, delay_scale_factor=4.0)
+        obs, reward, done, info = env.step(action, delay_scale_factor=3.0)
         if info["arm_right"] is not None:
             final_actions.append(action)
         # =======================================================
